@@ -1,22 +1,45 @@
 package entities;
 
 import types.Range;
+import types.StringType;
 
-import java.util.ArrayList;
-import java.util.List;
+public class StringParam extends Parameter {
+    private Range lengthRange;
+    private StringType stringType;
 
-public class IntParam extends Parameter {
-    private Range range;
-    private List<Integer> possibleValues;
-
-    public IntParam(Range range) {
-        this.range = range;
+    public StringParam(boolean isNullable, StringType stringType, Range lengthRange) {
+        super(isNullable);
+        this.stringType = stringType;
+        this.lengthRange = lengthRange;
     }
 
-    public IntParam(int...values) {
-        possibleValues = new ArrayList<>();
-        for (int i : values) {
-            possibleValues.add(i);
-        }
+    @Override
+    public Object[] getPositiveData(int numberOfNegativeTests) {
+        return new Object[0];
+    }
+
+    @Override
+    public Object[] getNegativeData(int numberOfNegativeTests) {
+        return new Object[0];
+    }
+
+    @Override
+    public int getMinRequiredNegativeQuantity() {
+        return 0;
+    }
+
+    @Override
+    public int getMaxNegativeQuantity() {
+        return 0;
+    }
+
+    @Override
+    public int getMinRequiredPositiveQuantity() {
+        return 0;
+    }
+
+    @Override
+    public int getMaxPositiveQuantity() {
+        return 0;
     }
 }
