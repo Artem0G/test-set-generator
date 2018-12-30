@@ -3,6 +3,8 @@ package entities;
 import types.Range;
 import types.StringType;
 
+import java.util.Set;
+
 public class StringParam extends Parameter {
     private Range lengthRange;
     private StringType stringType;
@@ -13,33 +15,87 @@ public class StringParam extends Parameter {
         this.lengthRange = lengthRange;
     }
 
+    public StringParam(boolean isNullable) {
+        super(isNullable);
+    }
+
     @Override
-    public Object[] getPositiveData(int numberOfNegativeTests) {
+    public boolean isNullable() {
+        return super.isNullable();
+    }
+
+    @Override
+    public synchronized void initValues() {
+        super.initValues();
+    }
+
+    @Override
+    public Object[] getPossibleValues(int quantity) {
+        return super.getPossibleValues(quantity);
+    }
+
+    @Override
+    public Object[] getImpossibleValues(int quantity) {
+        return super.getImpossibleValues(quantity);
+    }
+
+    @Override
+    protected void defineMandatoryValues() {
+
+    }
+
+    @Override
+    protected Object[] getPossibleValuesInternal(int quantity) {
         return new Object[0];
     }
 
     @Override
-    public Object[] getNegativeData(int numberOfNegativeTests) {
+    protected Object[] getImpossibleValuesInternal(int quantity) {
         return new Object[0];
     }
 
     @Override
-    public int getMinRequiredNegativeQuantity() {
+    public long getMaxImpossibleQuantity() {
         return 0;
     }
 
     @Override
-    public int getMaxNegativeQuantity() {
+    public long getMaxPossibleQuantity() {
         return 0;
     }
 
     @Override
-    public int getMinRequiredPositiveQuantity() {
-        return 0;
+    public int getMandatoryPossibleQuantity() {
+        return super.getMandatoryPossibleQuantity();
     }
 
     @Override
-    public int getMaxPositiveQuantity() {
-        return 0;
+    public int getMandatoryImpossibleQuantity() {
+        return super.getMandatoryImpossibleQuantity();
+    }
+
+    @Override
+    protected void setMandatoryPossibleQuantity(int mandatoryPossibleQuantity) {
+        super.setMandatoryPossibleQuantity(mandatoryPossibleQuantity);
+    }
+
+    @Override
+    protected void setMandatoryImpossibleQuantity(int mandatoryImpossibleQuantity) {
+        super.setMandatoryImpossibleQuantity(mandatoryImpossibleQuantity);
+    }
+
+    @Override
+    protected void increaseMandatoryPossibleQuantity(int mandatoryPositiveQuantity) {
+        super.increaseMandatoryPossibleQuantity(mandatoryPositiveQuantity);
+    }
+
+    @Override
+    protected void increaseMandatoryImpossibleQuantity(int mandatoryNegativeQuantity) {
+        super.increaseMandatoryImpossibleQuantity(mandatoryNegativeQuantity);
+    }
+
+    @Override
+    protected <T> Object[] getValuesFromSet(int quantity, Set<T> values) {
+        return super.getValuesFromSet(quantity, values);
     }
 }
