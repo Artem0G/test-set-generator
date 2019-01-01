@@ -1,19 +1,21 @@
 package entities;
 
+import types.NullIs;
+
 import java.util.Set;
 
 public abstract class Parameter {
-    private boolean isNullable;
+    private NullIs nullIs;
     private int mandatoryPossibleQuantity;
     private int mandatoryImpossibleQuantity;
     private boolean isInitiated;
 
-    public Parameter(boolean isNullable) {
-        this.isNullable = isNullable;
+    protected Parameter(NullIs nullIs) {
+        this.nullIs = nullIs;
     }
 
-    public boolean isNullable() {
-        return isNullable;
+    protected NullIs getNullIs() {
+        return nullIs;
     }
 
     public synchronized void initValues() {

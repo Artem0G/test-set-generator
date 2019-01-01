@@ -1,5 +1,6 @@
 package entities;
 
+import types.NullIs;
 import types.Range;
 import types.StringType;
 
@@ -9,19 +10,14 @@ public class StringParam extends Parameter {
     private Range lengthRange;
     private StringType stringType;
 
-    public StringParam(boolean isNullable, StringType stringType, Range lengthRange) {
+    public StringParam(NullIs isNullable, StringType stringType, Range lengthRange) {
         super(isNullable);
         this.stringType = stringType;
         this.lengthRange = lengthRange;
     }
 
-    public StringParam(boolean isNullable) {
+    public StringParam(NullIs isNullable) {
         super(isNullable);
-    }
-
-    @Override
-    public boolean isNullable() {
-        return super.isNullable();
     }
 
     @Override

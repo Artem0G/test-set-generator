@@ -1,5 +1,6 @@
 package entities;
 
+import types.NullIs;
 import types.Range;
 
 import java.util.*;
@@ -13,14 +14,14 @@ public class IntParam extends Parameter {
     private long maxPossibleValues = -1;
     private long maxImpossibleValues = -1;
 
-    public IntParam(boolean isNullable, Range...ranges) {
-        super(isNullable);
+    public IntParam(NullIs nullIs, Range...ranges) {
+        super(nullIs);
         this.ranges = Arrays.asList(ranges);
         possibleValues = new LinkedHashSet<>();
     }
 
-    public IntParam(boolean isNullable, int...values) {
-        super(isNullable);
+    public IntParam(NullIs nullIs, int...values) {
+        super(nullIs);
         possibleValues = Arrays.stream(values).boxed().collect(Collectors.toCollection(TreeSet::new));
         maxPossibleValues = values.length;
         setMandatoryPossibleQuantity(values.length);
@@ -32,11 +33,11 @@ public class IntParam extends Parameter {
         defineImpossibleMandatoryValuesFromPossible();
         ranges.sort((left, right) -> right.getStart() - left.getEnd());
         defineAllMandatoryValuesFromRanges();
-//        if (isNullable()) {
-//            addMandatoryPossibleValue(null);
-//        } else {
-//            addMandatoryImpossibleValue(null);
-//        }
+        if (getNullIs() == NullIs.POSITIVE) {
+            addMandatoryPossibleValue(null);
+        } else if (getNullIs() == NullIs.NEGATIVE) {
+            addMandatoryImpossibleValue(null);
+        }
     }
 
     @Override

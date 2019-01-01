@@ -3,6 +3,7 @@ package generator;
 import entities.IntParam;
 import entities.Parameter;
 import entities.StringParam;
+import types.NullIs;
 import types.Range;
 import types.StringType;
 import utils.ArrayHelper;
@@ -15,25 +16,43 @@ import java.util.stream.Stream;
 public class TestObject {
     private List<Parameter> params = new ArrayList<>();
 
-    //TODO: Integer, nullable?
-
-    public TestObject addInt() {
-        addIntParam(new IntParam(false, new Range(Integer.MIN_VALUE, Integer.MAX_VALUE)));
+    public TestObject addInteger(boolean canBeNull) {
+        NullIs nullIs = canBeNull ? NullIs.POSITIVE : NullIs.NEGATIVE;
+        addIntParam(new IntParam(nullIs, new Range(Integer.MIN_VALUE, Integer.MAX_VALUE)));
         return this;
     }
 
-    public TestObject addInt(Range range) {
-        addIntParam(new IntParam(false, range));
+    public TestObject addInteger(boolean canBeNull, Range...ranges) {
+        NullIs nullIs = canBeNull ? NullIs.POSITIVE : NullIs.NEGATIVE;
+        addIntParam(new IntParam(nullIs, ranges));
+        return this;
+    }
+
+    public TestObject addInteger(boolean canBeNull, int...args) {
+        NullIs nullIs = canBeNull ? NullIs.POSITIVE : NullIs.NEGATIVE;
+        addIntParam(new IntParam(nullIs, args));
+        return this;
+    }
+
+    public TestObject addInt() {
+        addIntParam(new IntParam(NullIs.NOT_ALLOWED, new Range(Integer.MIN_VALUE, Integer.MAX_VALUE)));
         return this;
     }
 
     public TestObject addInt(Range...ranges) {
-        addIntParam(new IntParam(false, ranges));
+        addIntParam(new IntParam(NullIs.NOT_ALLOWED, ranges));
         return this;
     }
 
     public TestObject addInt(int...args) {
-        addIntParam(new IntParam(false, args));
+        addIntParam(new IntParam(NullIs.NOT_ALLOWED, args));
+        return this;
+    }
+
+    public TestObject addString(StringType stringType, Range range) {
+        Parameter newParam = new StringParam(NullIs.NOT_ALLOWED, stringType, range);
+        newParam.initValues();
+        params.add(newParam);
         return this;
     }
 
@@ -42,28 +61,21 @@ public class TestObject {
         params.add(newParam);
     }
 
-    public TestObject addString(StringType stringType, Range range) {
-        Parameter newParam = new StringParam(false, stringType, range);
-        newParam.initValues();
-        params.add(newParam);
-        return this;
-    }
-
     public Stream<Object[]> generatePositiveTestCases() {
         return generatePositiveTestCases(0);
     }
 
-    public Stream<Object[]> generatePositiveTestCases(int maxQuantity) {
+    public Stream<Object[]> generatePositiveTestCases(int quantity) {
         int minRequired = getMaxFromMandatoryRequiredPositive();
-        if (maxQuantity > 0 && maxQuantity < minRequired) {
-            System.err.println(String.format("Warning!!! Maximum test cases quantity (%d) is less than required (%d) for good coverage", maxQuantity, minRequired));
-        } else if (maxQuantity <= 0) {
-            maxQuantity = minRequired;
+        if (quantity > 0 && quantity < minRequired) {
+            System.err.println(String.format("Warning!!! Test cases quantity (%d) is less than required (%d) for good coverage", quantity, minRequired));
+        } else if (quantity <= 0) {
+            quantity = minRequired;
         }
         Object[][] positiveParamValues = new Object[params.size()][];
         for (int i = 0; i < params.size(); i++) {
-            Object[] negativeValues = params.get(i).getPossibleValues(maxQuantity);
-            positiveParamValues[i] = negativeValues;
+            Object[] possibleValues = params.get(i).getPossibleValues(quantity);
+            positiveParamValues[i] = possibleValues;
         }
         return Stream.of(ArrayHelper.transposeMatrix(positiveParamValues));
     }
@@ -72,16 +84,16 @@ public class TestObject {
         return generateNegativeTestCases(0);
     }
 
-    public Stream<Object[]> generateNegativeTestCases(int maxQuantity) {
+    public Stream<Object[]> generateNegativeTestCases(int quantity) {
         List<Object[][]> testCases = new ArrayList<>();
         int numberOfTests = 0;
         for (int i = 0; i < params.size(); i++) {
             Parameter paramForValidation = params.get(i);
             int minRequired = paramForValidation.getMandatoryImpossibleQuantity();
-            int numberOfRequiredTests = maxQuantity;
-            if (maxQuantity > 0 && maxQuantity < minRequired) {
-                System.err.println(String.format("Warning!!! Maximum test cases quantity (%d) for parameter #%d is less than required (%d) for good coverage", maxQuantity, i+1, minRequired));
-            } else if (maxQuantity <= 0) {
+            int numberOfRequiredTests = quantity;
+            if (quantity > 0 && quantity < minRequired) {
+                System.err.println(String.format("Warning!!! Test cases quantity (%d) for parameter #%d is less than required (%d) for good coverage", quantity, i+1, minRequired));
+            } else if (quantity <= 0) {
                 numberOfRequiredTests = minRequired;
             }
             numberOfTests += numberOfRequiredTests;
