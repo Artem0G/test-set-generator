@@ -1,6 +1,7 @@
 package generator;
 
 import entities.Parameter;
+import exceptions.PoorCoverageException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,19 +33,30 @@ class TestObjectTest {
         return Stream.of(
                 Arguments.of(new int[]{1, 2, 3}, 5, 5),
                 Arguments.of(new int[]{1, 2, 3, 3}, 5, 5),
-                Arguments.of(new int[]{6, 3, 4}, 1, 1),
                 Arguments.of(new int[]{5}, 5, 5),
+                Arguments.of(new int[]{5}, 0, 5),
                 Arguments.of(new int[]{0}, 5, 5),
                 Arguments.of(new int[]{0, 2}, 10, 10),
+                Arguments.of(new int[]{0, 2}, 0, 2),
                 Arguments.of(new int[]{0, 2, 0}, 10, 10),
                 Arguments.of(new int[]{1, 2, 10}, 0, 10),
                 Arguments.of(new int[]{1, 2, 9, 10}, 0, 10)
         );
     }
 
+    private static Stream<Arguments> testExceptionData() {
+        return Stream.of(
+                Arguments.of(new int[]{6, 3, 4}, 5),
+                Arguments.of(new int[]{3, 4, 6}, 5),
+                Arguments.of(new int[]{6, 7, 8}, 5),
+                Arguments.of(new int[]{2}, 1),
+                Arguments.of(new int[]{2, 0}, 1)
+        );
+    }
+
     @ParameterizedTest
     @MethodSource("testData")
-    void generatePositiveTestCasesTest(int[] getMandatoryPossibleQuantityValues, int quantitySet, int quantityExpected) throws NoSuchFieldException, IllegalAccessException {
+    void generatePositiveTestCasesTest(int[] getMandatoryPossibleQuantityValues, int quantitySet, int quantityExpected) throws NoSuchFieldException, IllegalAccessException, PoorCoverageException {
         List<Parameter> parameters = new ArrayList<>(getMandatoryPossibleQuantityValues.length);
         for (int getMandatoryPossibleQuantityValue : getMandatoryPossibleQuantityValues) {
             Parameter param = Mockito.mock(Parameter.class);
@@ -68,7 +80,7 @@ class TestObjectTest {
 
     @ParameterizedTest
     @MethodSource("testData")
-    void generateNegativeTestCasesTest(int[] getMandatoryImpossibleQuantityValues, int quantitySet, int quantityExpected) throws NoSuchFieldException, IllegalAccessException {
+    void generateNegativeTestCasesTest(int[] getMandatoryImpossibleQuantityValues, int quantitySet, int quantityExpected) throws NoSuchFieldException, IllegalAccessException, PoorCoverageException {
         List<Parameter> parameters = new ArrayList<>(getMandatoryImpossibleQuantityValues.length);
         for (int getMandatoryImpossibleQuantityValue : getMandatoryImpossibleQuantityValues) {
             Parameter param = Mockito.mock(Parameter.class);
@@ -95,6 +107,26 @@ class TestObjectTest {
 
     }
 
+    @ParameterizedTest
+    @MethodSource("testExceptionData")
+    void generateTestCasesExceptionTest(int[] getMandatoryPossibleQuantityValues, int quantity) throws NoSuchFieldException, IllegalAccessException {
+        List<Parameter> parameters = new ArrayList<>(getMandatoryPossibleQuantityValues.length);
+        for (int getMandatoryPossibleQuantityValue : getMandatoryPossibleQuantityValues) {
+            Parameter param = Mockito.mock(Parameter.class);
+            Mockito.lenient().when(param.getMandatoryPossibleQuantity()).thenReturn(getMandatoryPossibleQuantityValue);
+            Mockito.lenient().when(param.getMandatoryImpossibleQuantity()).thenReturn(getMandatoryPossibleQuantityValue);
+            parameters.add(param);
+        }
+        Field params = testObject.getClass().getDeclaredField("params");
+        params.setAccessible(true);
+        params.set(testObject, parameters);
+        Assertions.assertAll(
+                () -> Assertions.assertThrows(PoorCoverageException.class, () -> testObject.generatePositiveTestCases(quantity)),
+                () -> Assertions.assertThrows(PoorCoverageException.class, () -> testObject.generateNegativeTestCases(quantity))
+        );
+
+
+    }
 
 
     private Object[] generateMocks(int quantity, String parent) {

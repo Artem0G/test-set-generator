@@ -3,6 +3,7 @@ package generator;
 import entities.IntParam;
 import entities.Parameter;
 import entities.StringParam;
+import exceptions.PoorCoverageException;
 import types.NullIs;
 import types.Range;
 import types.StringType;
@@ -61,30 +62,29 @@ public class TestObject {
         params.add(newParam);
     }
 
-    public Stream<Object[]> generatePositiveTestCases() {
+    public Stream<Object[]> generatePositiveTestCases() throws PoorCoverageException {
         return generatePositiveTestCases(0);
     }
 
-    public Stream<Object[]> generatePositiveTestCases(int quantity) {
+    public Stream<Object[]> generatePositiveTestCases(int quantity) throws PoorCoverageException {
         int minRequired = getMaxFromMandatoryRequiredPositive();
         if (quantity > 0 && quantity < minRequired) {
-            System.err.println(String.format("Warning!!! Test cases quantity (%d) is less than required (%d) for good coverage", quantity, minRequired));
+            throw new PoorCoverageException(String.format("Requested quantity: %d, minimum required quantity: %d", quantity, minRequired));
         } else if (quantity <= 0) {
             quantity = minRequired;
         }
-        Object[][] positiveParamValues = new Object[params.size()][];
+        Object[][] positiveValues = new Object[params.size()][];
         for (int i = 0; i < params.size(); i++) {
-            Object[] possibleValues = params.get(i).getPossibleValues(quantity);
-            positiveParamValues[i] = possibleValues;
+            positiveValues[i] = params.get(i).getPossibleValues(quantity);
         }
-        return Stream.of(ArrayHelper.transposeMatrix(positiveParamValues));
+        return Stream.of(ArrayHelper.transposeMatrix(positiveValues));
     }
 
-    public Stream<Object[]> generateNegativeTestCases() {
+    public Stream<Object[]> generateNegativeTestCases() throws PoorCoverageException {
         return generateNegativeTestCases(0);
     }
 
-    public Stream<Object[]> generateNegativeTestCases(int quantity) {
+    public Stream<Object[]> generateNegativeTestCases(int quantity) throws PoorCoverageException {
         List<Object[][]> testCases = new ArrayList<>();
         int numberOfTests = 0;
         for (int i = 0; i < params.size(); i++) {
@@ -92,7 +92,7 @@ public class TestObject {
             int minRequired = paramForValidation.getMandatoryImpossibleQuantity();
             int numberOfRequiredTests = quantity;
             if (quantity > 0 && quantity < minRequired) {
-                System.err.println(String.format("Warning!!! Test cases quantity (%d) for parameter #%d is less than required (%d) for good coverage", quantity, i+1, minRequired));
+                throw new PoorCoverageException(String.format("Parameter number: %d, requested quantity: %d, minimum required quantity: %d", i, quantity, minRequired));
             } else if (quantity <= 0) {
                 numberOfRequiredTests = minRequired;
             }
@@ -106,10 +106,10 @@ public class TestObject {
         }
 
         Object[][] finalTestCases = new Object[numberOfTests][params.size()];
-        int index = 0;
+        int startIndex = 0;
         for (Object[][] testCasesForCurrentParam : testCases) {
-            ArrayHelper.transposeMatrix(testCasesForCurrentParam, finalTestCases, index);
-            index += testCasesForCurrentParam[0].length;
+            ArrayHelper.transposeMatrix(testCasesForCurrentParam, finalTestCases, startIndex);
+            startIndex += testCasesForCurrentParam[0].length;
         }
 
         return Stream.of(finalTestCases);

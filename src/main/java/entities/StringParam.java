@@ -21,11 +21,6 @@ public class StringParam extends Parameter {
     }
 
     @Override
-    public synchronized void initValues() {
-        super.initValues();
-    }
-
-    @Override
     public Object[] getPossibleValues(int quantity) {
         return super.getPossibleValues(quantity);
     }

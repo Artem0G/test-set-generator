@@ -41,7 +41,7 @@ public class IntParam extends Parameter {
     }
 
     @Override
-    public Object[] getPossibleValuesInternal(int quantity) {
+    protected Object[] getPossibleValuesInternal(int quantity) {
         if (quantity > possibleValues.size() && !ranges.isEmpty()) {
             extractRestPossibleFromRanges(quantity);
         }
@@ -49,7 +49,7 @@ public class IntParam extends Parameter {
     }
 
     @Override
-    public Object[] getImpossibleValuesInternal(int quantity) {
+    protected Object[] getImpossibleValuesInternal(int quantity) {
         if (quantity > impossibleValues.size() && !ranges.isEmpty()) {
             extractRestImpossibleFromRanges(quantity);
         }
@@ -67,7 +67,7 @@ public class IntParam extends Parameter {
     @Override
     public long getMaxPossibleQuantity() {
         if (maxPossibleValues < 0) {
-            maxPossibleValues = ranges.stream().map(Range::getSize).count();
+            maxPossibleValues = ranges.stream().mapToInt(Range::getSize).sum();
         }
         return maxPossibleValues;
     }

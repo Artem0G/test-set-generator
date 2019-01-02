@@ -1,5 +1,6 @@
 package integration;
 
+import exceptions.PoorCoverageException;
 import generator.TestObject;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
@@ -32,13 +33,13 @@ class Example {
         TEST_OBJECT_CASE_2.addInt().addInt(1,3,5,55)/*.addString(StringType.ALPHANUMERIC, new Range(1, 10))*/;
     }
 
-    private static Stream<Arguments> goodData() {
+    private static Stream<Arguments> goodData() throws PoorCoverageException {
         return Stream.concat(
                 TEST_OBJECT_CASE_1.generatePositiveTestCases().map(Arguments::of),
                 TEST_OBJECT_CASE_2.generatePositiveTestCases().map(Arguments::of));
     }
 
-    private static Stream<Arguments> badData() {
+    private static Stream<Arguments> badData() throws PoorCoverageException {
         return Stream.concat(
                 TEST_OBJECT_CASE_1.generateNegativeTestCases().map(Arguments::of),
                 TEST_OBJECT_CASE_2.generateNegativeTestCases().map(Arguments::of));
