@@ -18,20 +18,17 @@ public class TestObject {
     private List<Parameter> params = new ArrayList<>();
 
     public TestObject addInteger(boolean canBeNull) {
-        NullIs nullIs = canBeNull ? NullIs.POSITIVE : NullIs.NEGATIVE;
-        addIntParam(new IntParam(nullIs, new Range(Integer.MIN_VALUE, Integer.MAX_VALUE)));
+        addIntParam(new IntParam(getNullIs(canBeNull), new Range(Integer.MIN_VALUE, Integer.MAX_VALUE)));
         return this;
     }
 
     public TestObject addInteger(boolean canBeNull, Range...ranges) {
-        NullIs nullIs = canBeNull ? NullIs.POSITIVE : NullIs.NEGATIVE;
-        addIntParam(new IntParam(nullIs, ranges));
+        addIntParam(new IntParam(getNullIs(canBeNull), ranges));
         return this;
     }
 
     public TestObject addInteger(boolean canBeNull, int...args) {
-        NullIs nullIs = canBeNull ? NullIs.POSITIVE : NullIs.NEGATIVE;
-        addIntParam(new IntParam(nullIs, args));
+        addIntParam(new IntParam(getNullIs(canBeNull), args));
         return this;
     }
 
@@ -123,6 +120,7 @@ public class TestObject {
         return max;
     }
 
-
-
+    private NullIs getNullIs(boolean canBeNull) {
+        return canBeNull ? NullIs.POSITIVE : NullIs.NEGATIVE;
+    }
 }
