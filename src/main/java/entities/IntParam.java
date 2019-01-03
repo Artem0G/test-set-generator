@@ -22,7 +22,7 @@ public class IntParam extends Parameter {
 
     public IntParam(NullIs nullIs, int...values) {
         super(nullIs);
-        possibleValues = Arrays.stream(values).boxed().collect(Collectors.toCollection(TreeSet::new));
+        possibleValues = Arrays.stream(values).boxed().collect(Collectors.toCollection(LinkedHashSet::new));
         maxPossibleValues = values.length;
         setMandatoryPossibleQuantity(values.length);
         ranges = new ArrayList<>();
