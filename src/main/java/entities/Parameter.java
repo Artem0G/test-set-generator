@@ -26,11 +26,17 @@ public abstract class Parameter {
     }
 
     public Object[] getPossibleValues(int quantity){
+        if (quantity <= 0) {
+            throw new IllegalArgumentException(String.valueOf(quantity));
+        }
         initValues();
         return getPossibleValuesInternal(quantity);
     }
 
     public Object[] getImpossibleValues(int quantity){
+        if (quantity <= 0) {
+            throw new IllegalArgumentException(String.valueOf(quantity));
+        }
         initValues();
         return getImpossibleValuesInternal(quantity);
     }

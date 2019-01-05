@@ -14,8 +14,37 @@ public class IntParamTest {
 
     private static Stream<Arguments> getPossibleValuesData(){
         return Stream.of(
-                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{1, 3, 99, Integer.MAX_VALUE}, 0, new Object[0]),
-                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{1, 3, 99, Integer.MAX_VALUE}, 4, new Object[]{1, 3, 99, Integer.MAX_VALUE})
+//                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{1, 3, 99, Integer.MAX_VALUE}, -1, new Object[0]),
+//                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{1, 3, 99, Integer.MAX_VALUE}, 0, new Object[0]),
+//                Arguments.of(false, NullIs.NOT_ALLOWED, new int[0], 1, new Object[0]),
+                // values
+                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{3}, 1, new Object[]{3}),
+                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{3}, 2, new Object[]{3,3}),
+                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{1, 3, 99, Integer.MAX_VALUE}, 1, new Object[]{1}),
+                Arguments.of(false, NullIs.NEGATIVE, new int[]{1, 3, 99, Integer.MAX_VALUE}, 2, new Object[]{1, 3}),
+                Arguments.of(false, NullIs.POSITIVE, new int[]{1, 3, 99, Integer.MAX_VALUE}, 4, new Object[]{1, 3, 99, Integer.MAX_VALUE}),
+                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{1, 3, 99, Integer.MAX_VALUE}, 4, new Object[]{1, 3, 99, Integer.MAX_VALUE}),
+                Arguments.of(false, NullIs.NEGATIVE, new int[]{1, 3, 99, Integer.MAX_VALUE}, 5, new Object[]{1, 3, 99, Integer.MAX_VALUE, 1}),
+                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{1, 3, 99, Integer.MAX_VALUE}, 8, new Object[]{1, 3, 99, Integer.MAX_VALUE, 1, 3, 99, Integer.MAX_VALUE}),
+                Arguments.of(false, NullIs.POSITIVE, new int[]{1, 3, 99, Integer.MAX_VALUE}, 12, new Object[]{1, 3, 99, Integer.MAX_VALUE, null, 1, 3, 99, Integer.MAX_VALUE, null, 1, 3}),
+                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{-1, 3, -99, 0, Integer.MIN_VALUE}, 1, new Object[]{-1}),
+                Arguments.of(false, NullIs.NEGATIVE, new int[]{-1, 3, -99, 0, Integer.MIN_VALUE}, 2, new Object[]{-1, 3}),
+                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{-1, 3, -99, 0, Integer.MIN_VALUE}, 3, new Object[]{-1, 3, -99}),
+                Arguments.of(false, NullIs.POSITIVE, new int[]{-1, 3, -99, 0, Integer.MIN_VALUE}, 5, new Object[]{-1, 3, -99, 0, Integer.MIN_VALUE}),
+                Arguments.of(false, NullIs.NOT_ALLOWED, new int[]{-1, 3, -99, 0, Integer.MIN_VALUE}, 6, new Object[]{-1, 3, -99, 0, Integer.MIN_VALUE, -1}),
+                Arguments.of(false, NullIs.POSITIVE, new int[]{-1, 3, -99, 0, Integer.MIN_VALUE}, 8, new Object[]{-1, 3, -99, 0, Integer.MIN_VALUE, null, -1, 3}),
+                Arguments.of(false, NullIs.NEGATIVE, new int[]{-1, 3, -99, 0, Integer.MIN_VALUE}, 11, new Object[]{-1, 3, -99, 0, Integer.MIN_VALUE, -1, 3, -99, 0, Integer.MIN_VALUE, -1}),
+                // ranges
+                Arguments.of(true, NullIs.NOT_ALLOWED, new Range[]{new Range(Integer.MIN_VALUE, Integer.MAX_VALUE)}, 1, new Object[]{Integer.MIN_VALUE}),
+                Arguments.of(true, NullIs.NOT_ALLOWED, new Range[]{new Range(Integer.MIN_VALUE, Integer.MAX_VALUE)}, 2, new Object[]{Integer.MIN_VALUE, Integer.MAX_VALUE}),
+                Arguments.of(true, NullIs.NEGATIVE, new Range[]{new Range(Integer.MIN_VALUE, Integer.MAX_VALUE)}, 3, new Object[]{Integer.MIN_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE + 1}),
+                Arguments.of(true, NullIs.POSITIVE, new Range[]{new Range(Integer.MIN_VALUE, Integer.MAX_VALUE)}, 3, new Object[]{Integer.MIN_VALUE, Integer.MAX_VALUE, null}),
+                Arguments.of(true, NullIs.POSITIVE, new Range[]{new Range(-300, -5)}, 5, new Object[]{-300, -5, null, -299, -298}),
+                Arguments.of(true, NullIs.NEGATIVE, new Range[]{new Range(300, 1000)}, 5, new Object[]{300, 1000, 301, 302, 303}),
+                Arguments.of(true, NullIs.NOT_ALLOWED, new Range[]{new Range(-1, 1)}, 4, new Object[]{-1, 1, 0, -1}),
+                Arguments.of(true, NullIs.POSITIVE, new Range[]{new Range(28)}, 4, new Object[]{28, null, 28, null}),
+                Arguments.of(true, NullIs.POSITIVE, new Range[]{new Range(13, 14), new Range(0), new Range(-2, 2), new Range(-300, -5)}, 8, new Object[]{-300, -5, 0, -2, 2, 13, 14, null}),
+                Arguments.of(true, NullIs.POSITIVE, new Range[]{new Range(13, 14), new Range(0), new Range(-2, 2), new Range(-300, -298)}, 12, new Object[]{-300, -298, 0, -2, 2, 13, 14, null, -299, -1, 1, -300})
         );
     }
 
@@ -25,9 +54,19 @@ public class IntParamTest {
     void getPossibleValuesTest(boolean isRanges, NullIs nullIs, Object initValues, int quantity, Object[] expectedValue){
         Parameter parameter;
         if (isRanges) {
-            parameter = new IntParam(nullIs, (Range[]) initValues);
+            Range[] ranges = (Range[]) initValues;
+            if (ranges.length == 1) {
+                parameter = new IntParam(nullIs, ranges[0]);
+            } else {
+                parameter = new IntParam(nullIs, ranges);
+            }
         } else {
-            parameter = new IntParam(nullIs, (int[]) initValues);
+            int[] values = (int[]) initValues;
+            if (values.length == 1) {
+                parameter = new IntParam(nullIs, values[0]);
+            } else {
+                parameter = new IntParam(nullIs, values);
+            }
         }
         Assertions.assertArrayEquals(expectedValue, parameter.getPossibleValues(quantity));
     }

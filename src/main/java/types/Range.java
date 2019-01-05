@@ -25,15 +25,15 @@ public class Range {
         return end;
     }
 
-    public int getSize() {
-        return end - start + 1;
+    public long getSize() {
+        return (long) end - start + 1;
     }
 
-    public int getInnerSize() {
+    public long getInnerSize() {
         if (end == start) {
             return 0;
         } else {
-            return end - start - 1;
+            return (long) end - start - 1;
         }
     }
 

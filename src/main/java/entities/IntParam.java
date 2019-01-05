@@ -16,12 +16,18 @@ public class IntParam extends Parameter {
 
     public IntParam(NullIs nullIs, Range...ranges) {
         super(nullIs);
+        if (ranges.length == 0) {
+            throw new IllegalArgumentException("At least one Range should be specified");
+        }
         this.ranges = Arrays.asList(ranges);
         possibleValues = new LinkedHashSet<>();
     }
 
     public IntParam(NullIs nullIs, int...values) {
         super(nullIs);
+        if (values.length == 0) {
+            throw new IllegalArgumentException("At least one values should be specified");
+        }
         possibleValues = Arrays.stream(values).boxed().collect(Collectors.toCollection(LinkedHashSet::new));
         maxPossibleValues = values.length;
         setMandatoryPossibleQuantity(values.length);
@@ -31,7 +37,7 @@ public class IntParam extends Parameter {
     @Override
     protected void defineMandatoryValues() {
         defineImpossibleMandatoryValuesFromPossible();
-        ranges.sort((left, right) -> right.getStart() - left.getEnd());
+        ranges.sort((left, right) -> left.getEnd() - right.getStart());
         defineAllMandatoryValuesFromRanges();
         if (getNullIs() == NullIs.POSITIVE) {
             addMandatoryPossibleValue(null);
@@ -67,7 +73,7 @@ public class IntParam extends Parameter {
     @Override
     public long getMaxPossibleQuantity() {
         if (maxPossibleValues < 0) {
-            maxPossibleValues = ranges.stream().mapToInt(Range::getSize).sum();
+            maxPossibleValues = ranges.stream().mapToLong(Range::getSize).sum();
         }
         return maxPossibleValues;
     }
