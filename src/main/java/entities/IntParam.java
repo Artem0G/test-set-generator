@@ -56,8 +56,12 @@ public class IntParam extends Parameter {
 
     @Override
     protected Object[] getImpossibleValuesInternal(int quantity) {
-        if (quantity > impossibleValues.size() && !ranges.isEmpty()) {
-            extractRestImpossibleFromRanges(quantity);
+        if (quantity > impossibleValues.size()) {
+            if (!ranges.isEmpty()) {
+                extractRestImpossibleFromRanges(quantity);
+            } else {
+                extractRestImpossibleFromValues(quantity);
+            }
         }
         return getImpossibleFromValues(quantity);
     }
@@ -112,9 +116,9 @@ public class IntParam extends Parameter {
 
     private void extractRestImpossibleFromRanges(int quantity) {
         int restQuantity = quantity - impossibleValues.size();
-        int numberOfDefinedNotMandatoryValues = impossibleValues.size() - getMandatoryImpossibleQuantity();
-        int numberOfUncheckedDefinedNotMandatoryValues = numberOfDefinedNotMandatoryValues;
-        List<Integer> restValues = new ArrayList<>(restQuantity);
+        long numberOfDefinedNotMandatoryValues = impossibleValues.size() - getMandatoryImpossibleQuantity();
+        long numberOfUncheckedDefinedNotMandatoryValues = numberOfDefinedNotMandatoryValues;
+        Set<Integer> restValues = new LinkedHashSet<>();
         int lastMin = Integer.MIN_VALUE;
         for (Range range : ranges) {
             int numberOfAvailableValues = range.getStart() - 1 - lastMin;
@@ -124,7 +128,7 @@ public class IntParam extends Parameter {
             }
             List<Integer> rangeValues = IntStream.range(lastMin,range.getStart() - 1)
                     .skip(numberOfUncheckedDefinedNotMandatoryValues)
-                    .limit((long) quantity - numberOfDefinedNotMandatoryValues)
+                    .limit((long) restQuantity - numberOfDefinedNotMandatoryValues)
                     .boxed()
                     .collect(Collectors.toList());
             numberOfDefinedNotMandatoryValues += numberOfAvailableValues;
@@ -142,6 +146,18 @@ public class IntParam extends Parameter {
                     .boxed()
                     .collect(Collectors.toList()));
         }
+        impossibleValues.addAll(restValues);
+    }
+
+    private void extractRestImpossibleFromValues(int quantity) {
+        int restQuantity = quantity - impossibleValues.size();
+        long numberOfDefinedNotMandatoryValues = impossibleValues.size() - getMandatoryImpossibleQuantity();
+        List<Integer> restValues = IntStream.rangeClosed(Integer.MIN_VALUE, Integer.MAX_VALUE)
+                .filter(value->!possibleValues.contains(value) && !impossibleValues.contains(value))
+                .skip(numberOfDefinedNotMandatoryValues)
+                .limit((long) restQuantity - numberOfDefinedNotMandatoryValues)
+                .boxed()
+                .collect(Collectors.toList());
         impossibleValues.addAll(restValues);
     }
 
