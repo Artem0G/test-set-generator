@@ -11,8 +11,6 @@ public class IntParam extends Parameter {
     private List<Range> ranges;
     private Set<Integer> possibleValues;
     private Set<Integer> impossibleValues;
-    private long maxPossibleValues = -1;
-    private long maxImpossibleValues = -1;
 
     public IntParam(NullIs nullIs, Range...ranges) {
         super(nullIs);
@@ -29,7 +27,6 @@ public class IntParam extends Parameter {
             throw new IllegalArgumentException("At least one values should be specified");
         }
         possibleValues = Arrays.stream(values).boxed().collect(Collectors.toCollection(LinkedHashSet::new));
-        maxPossibleValues = values.length;
         setMandatoryPossibleQuantity(values.length);
         ranges = new ArrayList<>();
     }
@@ -66,22 +63,6 @@ public class IntParam extends Parameter {
         return getImpossibleFromValues(quantity);
     }
 
-    @Override
-    public long getMaxImpossibleQuantity() {
-        if (maxImpossibleValues < 0) {
-            maxImpossibleValues = (long) Integer.MAX_VALUE - Integer.MIN_VALUE + 1 - getMaxPossibleQuantity();
-        }
-        return maxImpossibleValues;
-    }
-
-    @Override
-    public long getMaxPossibleQuantity() {
-        if (maxPossibleValues < 0) {
-            maxPossibleValues = ranges.stream().mapToLong(Range::getSize).sum();
-        }
-        return maxPossibleValues;
-    }
-
     private Object[] getPossibleFromValues(int quantity) {
         return getValuesFromSet(quantity, possibleValues);
     }
@@ -94,7 +75,7 @@ public class IntParam extends Parameter {
         int restQuantity = quantity - possibleValues.size();
         int numberOfDefinedNotMandatoryValues = possibleValues.size() - getMandatoryPossibleQuantity();
         int numberOfUncheckedDefinedNotMandatoryValues = numberOfDefinedNotMandatoryValues;
-        List<Integer> restValues = new ArrayList<>(restQuantity);
+        List<Integer> restValues = new ArrayList<>();
         for (Range range : ranges) {
             if (numberOfUncheckedDefinedNotMandatoryValues >= range.getInnerSize()) {
                 numberOfUncheckedDefinedNotMandatoryValues -= range.getInnerSize();
@@ -102,12 +83,12 @@ public class IntParam extends Parameter {
             }
             List<Integer> rangeValues = IntStream.range(range.getStart() + 1,range.getEnd())
                     .skip(numberOfUncheckedDefinedNotMandatoryValues)
-                    .limit((long) quantity - numberOfDefinedNotMandatoryValues)
+                    .limit((long) restQuantity - numberOfDefinedNotMandatoryValues)
                     .boxed()
                     .collect(Collectors.toList());
             numberOfDefinedNotMandatoryValues += rangeValues.size();
             restValues.addAll(rangeValues);
-            if (numberOfDefinedNotMandatoryValues >= quantity) {
+            if (numberOfDefinedNotMandatoryValues >= restQuantity) {
                 break;
             }
         }
@@ -116,14 +97,15 @@ public class IntParam extends Parameter {
 
     private void extractRestImpossibleFromRanges(int quantity) {
         int restQuantity = quantity - impossibleValues.size();
-        long numberOfDefinedNotMandatoryValues = impossibleValues.size() - getMandatoryImpossibleQuantity();
-        long numberOfUncheckedDefinedNotMandatoryValues = numberOfDefinedNotMandatoryValues;
+        int numberOfDefinedNotMandatoryValues = impossibleValues.size() - getMandatoryImpossibleQuantity();
+        int numberOfUncheckedDefinedNotMandatoryValues = numberOfDefinedNotMandatoryValues;
         Set<Integer> restValues = new LinkedHashSet<>();
         int lastMin = Integer.MIN_VALUE;
         for (Range range : ranges) {
             int numberOfAvailableValues = range.getStart() - 1 - lastMin;
             if (numberOfUncheckedDefinedNotMandatoryValues >= numberOfAvailableValues) {
                 numberOfUncheckedDefinedNotMandatoryValues -= numberOfAvailableValues;
+                lastMin = range.getEnd() <= Integer.MAX_VALUE - 2 ? range.getEnd() + 2 : Integer.MAX_VALUE;
                 continue;
             }
             List<Integer> rangeValues = IntStream.range(lastMin,range.getStart() - 1)
@@ -134,15 +116,15 @@ public class IntParam extends Parameter {
             numberOfDefinedNotMandatoryValues += numberOfAvailableValues;
             lastMin = range.getEnd() <= Integer.MAX_VALUE - 2 ? range.getEnd() + 2 : Integer.MAX_VALUE;
             restValues.addAll(rangeValues);
-            if (numberOfDefinedNotMandatoryValues >= quantity) {
+            if (numberOfDefinedNotMandatoryValues >= restQuantity) {
                 break;
             }
 
         }
-        if (numberOfDefinedNotMandatoryValues < quantity && lastMin < Integer.MAX_VALUE) {
+        if (numberOfDefinedNotMandatoryValues < restQuantity && lastMin < Integer.MAX_VALUE) {
             restValues.addAll(IntStream.rangeClosed(lastMin,Integer.MAX_VALUE)
                     .skip(numberOfUncheckedDefinedNotMandatoryValues)
-                    .limit((long) quantity - numberOfDefinedNotMandatoryValues)
+                    .limit((long) restQuantity - numberOfDefinedNotMandatoryValues)
                     .boxed()
                     .collect(Collectors.toList()));
         }
@@ -151,7 +133,7 @@ public class IntParam extends Parameter {
 
     private void extractRestImpossibleFromValues(int quantity) {
         int restQuantity = quantity - impossibleValues.size();
-        long numberOfDefinedNotMandatoryValues = impossibleValues.size() - getMandatoryImpossibleQuantity();
+        int numberOfDefinedNotMandatoryValues = impossibleValues.size() - getMandatoryImpossibleQuantity();
         List<Integer> restValues = IntStream.rangeClosed(Integer.MIN_VALUE, Integer.MAX_VALUE)
                 .filter(value->!possibleValues.contains(value) && !impossibleValues.contains(value))
                 .skip(numberOfDefinedNotMandatoryValues)
@@ -178,12 +160,12 @@ public class IntParam extends Parameter {
     private void defineImpossibleMandatoryValuesFromPossible() {
         impossibleValues = new LinkedHashSet<>();
         // If this object was created with possibleValues then possibleValues isn't empty
-        possibleValues.forEach(value ->{
-            if (value > Integer.MIN_VALUE) {
-                addMandatoryImpossibleValue(value - 1);
+        possibleValues.forEach(possibleValue ->{
+            if (possibleValue > Integer.MIN_VALUE && !possibleValues.contains(possibleValue - 1)) {
+                addMandatoryImpossibleValue(possibleValue - 1);
             }
-            if (value < Integer.MAX_VALUE) {
-                addMandatoryImpossibleValue(value + 1);
+            if (possibleValue < Integer.MAX_VALUE && !possibleValues.contains(possibleValue + 1)) {
+                addMandatoryImpossibleValue(possibleValue + 1);
             }
         });
     }
@@ -199,4 +181,5 @@ public class IntParam extends Parameter {
             increaseMandatoryImpossibleQuantity(1);
         }
     }
+
 }

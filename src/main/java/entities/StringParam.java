@@ -46,16 +46,6 @@ public class StringParam extends Parameter {
     }
 
     @Override
-    public long getMaxImpossibleQuantity() {
-        return 0;
-    }
-
-    @Override
-    public long getMaxPossibleQuantity() {
-        return 0;
-    }
-
-    @Override
     public int getMandatoryPossibleQuantity() {
         return super.getMandatoryPossibleQuantity();
     }

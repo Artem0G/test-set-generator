@@ -26,7 +26,7 @@ public abstract class Parameter {
     }
 
     public Object[] getPossibleValues(int quantity){
-        if (quantity <= 0) {
+        if (quantity <= 0 || quantity > 1000) {
             throw new IllegalArgumentException(String.valueOf(quantity));
         }
         initValues();
@@ -34,7 +34,7 @@ public abstract class Parameter {
     }
 
     public Object[] getImpossibleValues(int quantity){
-        if (quantity <= 0) {
+        if (quantity <= 0 || quantity > 1000) {
             throw new IllegalArgumentException(String.valueOf(quantity));
         }
         initValues();
@@ -46,10 +46,6 @@ public abstract class Parameter {
     protected abstract Object[] getPossibleValuesInternal(int quantity);
 
     protected abstract Object[] getImpossibleValuesInternal(int quantity);
-
-    public abstract long getMaxImpossibleQuantity();
-
-    public abstract long getMaxPossibleQuantity();
 
     public int getMandatoryPossibleQuantity() {
         return mandatoryPossibleQuantity;
@@ -76,7 +72,7 @@ public abstract class Parameter {
     }
 
     protected <T> Object[] getValuesFromSet(int quantity, Set<T> values) {
-        if (quantity <= values.size()) {
+        if (quantity <= values.size() || values.isEmpty()) {
             return values.stream().limit(quantity).toArray();
         } else {
             Object[] valuesForReturn = new Object[quantity];
